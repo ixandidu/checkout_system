@@ -27,14 +27,10 @@ class Checkout
       item_promotion.apply(@scanned_items)
     end
 
-    basket_total = @scanned_items.sum { |item| item.sale_price || item.total_price }
-
-    @basket_promotions.each do |basket_promotion|
-      next if basket_total <= basket_promotion.total
-
-      basket_total -= basket_promotion.discount
+    @basket_promotions.sum do |basket_promotion|
+      basket_promotion.apply(
+        @scanned_items.sum { |item| item.sale_price || item.total_price }
+      )
     end
-
-    basket_total
   end
 end
