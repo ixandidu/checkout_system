@@ -10,7 +10,7 @@ RSpec.describe 'Checkout System' do
     let(:item_c) { Item.new(name: 'C', price: 50) }
     let(:item_d) { Item.new(name: 'D', price: 15) }
 
-    context 'and promotions for item A, item B, and basket discount exists' do
+    context 'and promotional rules for item A, item B, and basket discount exists' do
       let(:item_a_promotion) do
         ItemPromotion.new(item: item_a, qty: 3, price: 75)
       end
@@ -21,11 +21,13 @@ RSpec.describe 'Checkout System' do
 
       describe Checkout, '#total' do
         context 'with all promotional rules applied' do
-          let(:rules) { [item_a_promotion, item_b_promotion, basket_promotion] }
+          let(:promotions) do
+            [item_a_promotion, item_b_promotion, basket_promotion]
+          end
 
           context 'and items A, B, C in the basket' do
             it 'is the sum of item price in the basket' do
-              checkout = Checkout.new(rules)
+              checkout = Checkout.new(promotions)
               checkout.scan(item_a)
               checkout.scan(item_b)
               checkout.scan(item_c)
@@ -38,7 +40,7 @@ RSpec.describe 'Checkout System' do
 
           context 'and items B, A, B, A, A in the basket' do
             it 'is the sum of item A and item B promotion price' do
-              checkout = Checkout.new(rules)
+              checkout = Checkout.new(promotions)
               checkout.scan(item_b)
               checkout.scan(item_a)
               checkout.scan(item_b)
@@ -53,7 +55,7 @@ RSpec.describe 'Checkout System' do
 
           context 'and items C, B, A, A, D, A, B in the basket' do
             it 'is the sum of item C price, item A and item B promotion price, and item D price, minus basket discount' do
-              checkout = Checkout.new(rules)
+              checkout = Checkout.new(promotions)
               checkout.scan(item_c)
               checkout.scan(item_b)
               checkout.scan(item_a)
@@ -74,7 +76,7 @@ RSpec.describe 'Checkout System' do
 
           context 'and items C, A, D, A, A the basket' do
             it 'is the sum of item C price, item A promotion price, and item D price' do
-              checkout = Checkout.new(rules)
+              checkout = Checkout.new(promotions)
               checkout.scan(item_c)
               checkout.scan(item_a)
               checkout.scan(item_d)

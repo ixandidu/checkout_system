@@ -1,8 +1,8 @@
 require 'ostruct'
 
 class Checkout
-  def initialize(rules)
-    @rules = rules
+  def initialize(promotions)
+    @promotions = promotions
     @scanned_items = []
   end
 
@@ -17,7 +17,7 @@ class Checkout
 
   def total
     # Item Promotions
-    @rules.filter { |rule| rule.is_a?(ItemPromotion) }.each do |item_promotion|
+    @promotions.filter { |rule| rule.is_a?(ItemPromotion) }.each do |item_promotion|
       scanned_item = @scanned_items.find { |item| item.item == item_promotion.item }
 
       next unless scanned_item
@@ -38,7 +38,7 @@ class Checkout
     basket_total = @scanned_items.sum { |item| item.sale_price || item.total_price }
 
     # Basket promotions
-    @rules.filter { |rule| rule.is_a?(BasketPromotion) }.each do |basket_promotion|
+    @promotions.filter { |rule| rule.is_a?(BasketPromotion) }.each do |basket_promotion|
       next if basket_total <= basket_promotion.total
 
       basket_total -= basket_promotion.discount
