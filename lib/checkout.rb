@@ -2,8 +2,15 @@ require 'ostruct'
 
 class Checkout
   def initialize(promotions)
-    @promotions = promotions
     @scanned_items = []
+
+    @item_promotions = promotions.filter do |promotion|
+      promotion.is_a?(Promotion::Item)
+    end
+
+    @basket_promotions = promotions.filter do |promotion|
+      promotion.is_a?(Promotion::Basket)
+    end
   end
 
   def scan(item)
@@ -16,29 +23,13 @@ class Checkout
   end
 
   def total
-    # Item Promotions
-    @promotions.filter { |rule| rule.is_a?(ItemPromotion) }.each do |item_promotion|
-      scanned_item = @scanned_items.find { |item| item.item == item_promotion.item }
-
-      next unless scanned_item
-
-      if scanned_item.qty >= item_promotion.qty
-        scanned_item.sale_price = 0
-
-        (scanned_item.qty / item_promotion.qty).times do
-          scanned_item.sale_price += item_promotion.price
-        end
-
-        (scanned_item.qty % item_promotion.qty).times do
-          scanned_item.sale_price += scanned_item.price
-        end
-      end
+    @item_promotions.each do |item_promotion|
+      item_promotion.apply(@scanned_items)
     end
 
     basket_total = @scanned_items.sum { |item| item.sale_price || item.total_price }
 
-    # Basket promotions
-    @promotions.filter { |rule| rule.is_a?(BasketPromotion) }.each do |basket_promotion|
+    @basket_promotions.each do |basket_promotion|
       next if basket_total <= basket_promotion.total
 
       basket_total -= basket_promotion.discount
@@ -47,5 +38,3 @@ class Checkout
     basket_total
   end
 end
-
-

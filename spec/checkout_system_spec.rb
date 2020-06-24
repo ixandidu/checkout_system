@@ -1,6 +1,6 @@
 require 'item'
-require 'item_promotion'
-require 'basket_promotion'
+require 'promotion/item'
+require 'promotion/basket'
 require 'checkout'
 
 RSpec.describe 'Checkout System' do
@@ -12,12 +12,12 @@ RSpec.describe 'Checkout System' do
 
     context 'and promotional rules for item A, item B, and basket discount exists' do
       let(:item_a_promotion) do
-        ItemPromotion.new(item: item_a, qty: 3, price: 75)
+        Promotion::Item.new(item: item_a, qty: 3, price: 75)
       end
       let(:item_b_promotion) do
-        ItemPromotion.new(item: item_b, qty: 2, price: 35)
+        Promotion::Item.new(item: item_b, qty: 2, price: 35)
       end
-      let(:basket_promotion) { BasketPromotion.new(total: 150, discount: 20) }
+      let(:basket_promotion) { Promotion::Basket.new(total: 150, discount: 20) }
 
       describe Checkout, '#total' do
         context 'with all promotional rules applied' do
