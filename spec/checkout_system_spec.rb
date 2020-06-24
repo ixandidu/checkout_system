@@ -1,63 +1,16 @@
-require 'ostruct'
-
-class Checkout
-  def initialize(rules)
-    @rules = rules
-    @scanned_items = []
-  end
-
-  def scan(item)
-    if (scanned_item = @scanned_items.find { |i| i.item == item.item })
-      scanned_item.qty += 1
-      scanned_item.total_price += item.price
-    else
-      @scanned_items << OpenStruct.new(**item.to_h, qty: 1, total_price: item.price)
-    end
-  end
-
-  def total
-    # Item Promotions
-    @rules.filter { |rule| rule.total.nil? }.each do |item_promotion|
-      scanned_item = @scanned_items.find { |item| item.item == item_promotion.item }
-
-      next unless scanned_item
-
-      if scanned_item.qty >= item_promotion.qty
-        scanned_item.sale_price = 0
-
-        (scanned_item.qty / item_promotion.qty).times do
-          scanned_item.sale_price += item_promotion.price
-        end
-
-        (scanned_item.qty % item_promotion.qty).times do
-          scanned_item.sale_price += scanned_item.price
-        end
-      end
-    end
-
-    basket_total = @scanned_items.sum { |item| item.sale_price || item.total_price }
-
-    # Basket promotions
-    @rules.filter { |rule| rule.item.nil? }.each do |basket_promotion|
-      next if basket_total <= basket_promotion.total
-
-      basket_total -= basket_promotion.discount
-    end
-
-    basket_total
-  end
-end
+require 'item'
+require 'checkout'
 
 RSpec.describe 'Checkout System' do
   context 'given items A, B, C, and D exists' do
-    let(:item_a) { OpenStruct.new(item: 'A', price: 30) }
-    let(:item_b) { OpenStruct.new(item: 'B', price: 20) }
-    let(:item_c) { OpenStruct.new(item: 'C', price: 50) }
-    let(:item_d) { OpenStruct.new(item: 'D', price: 15) }
+    let(:item_a) { Item.new(name: 'A', price: 30) }
+    let(:item_b) { Item.new(name: 'B', price: 20) }
+    let(:item_c) { Item.new(name: 'C', price: 50) }
+    let(:item_d) { Item.new(name: 'D', price: 15) }
 
     context 'and promotions for item A, item B, and basket discount exists' do
-      let(:item_a_promotion) { OpenStruct.new(item: 'A', qty: 3, price: 75) }
-      let(:item_b_promotion) { OpenStruct.new(item: 'B', qty: 2, price: 35) }
+      let(:item_a_promotion) { OpenStruct.new(item: item_a, qty: 3, price: 75) }
+      let(:item_b_promotion) { OpenStruct.new(item: item_b, qty: 2, price: 35) }
       let(:basket_promotion) { OpenStruct.new(total: 150, discount: 20) }
 
       describe Checkout, '#total' do
