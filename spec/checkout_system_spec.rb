@@ -86,6 +86,26 @@ RSpec.describe 'Checkout System' do
               )
             end
           end
+
+          context 'and items C, A, D, A, A, A the basket' do
+            it 'is the sum of item C price, item A promotion price, item D price, and item A price, minus basket discount' do
+              checkout = Checkout.new(promotions)
+              checkout.scan(item_c)
+              checkout.scan(item_a)
+              checkout.scan(item_d)
+              checkout.scan(item_a)
+              checkout.scan(item_a)
+              checkout.scan(item_a)
+
+              expect(checkout.total).to eq(
+                item_c.price +
+                  item_a_promotion.price +
+                  item_d.price +
+                  item_a.price -
+                  basket_promotion.discount
+              )
+            end
+          end
         end
       end
     end

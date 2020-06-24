@@ -1,4 +1,10 @@
+require 'forwardable'
+
 class ScannedItem
+  extend Forwardable
+
+  def_delegator :item, :price
+
   attr_accessor :sale_price
   attr_reader :item, :qty, :normal_price
 
