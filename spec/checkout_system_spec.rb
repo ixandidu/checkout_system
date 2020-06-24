@@ -3,39 +3,39 @@ require 'ostruct'
 class Checkout
   def initialize(rules)
     @rules = rules
-    @basket = []
+    @scanned_items = []
   end
 
   def scan(item)
-    if (existing_item = @basket.find { |i| i.item == item.item })
-      existing_item.qty += 1
-      existing_item.total_price += item.price
+    if (scanned_item = @scanned_items.find { |i| i.item == item.item })
+      scanned_item.qty += 1
+      scanned_item.total_price += item.price
     else
-      @basket << OpenStruct.new(**item.to_h, qty: 1, total_price: item.price)
+      @scanned_items << OpenStruct.new(**item.to_h, qty: 1, total_price: item.price)
     end
   end
 
   def total
     # Item Promotions
     @rules.filter { |rule| rule.total.nil? }.each do |item_promotion|
-      existing_item = @basket.find { |item| item.item == item_promotion.item }
+      scanned_item = @scanned_items.find { |item| item.item == item_promotion.item }
 
-      next unless existing_item
+      next unless scanned_item
 
-      if existing_item.qty >= item_promotion.qty
-        existing_item.sale_price = 0
+      if scanned_item.qty >= item_promotion.qty
+        scanned_item.sale_price = 0
 
-        (existing_item.qty / item_promotion.qty).times do
-          existing_item.sale_price += item_promotion.price
+        (scanned_item.qty / item_promotion.qty).times do
+          scanned_item.sale_price += item_promotion.price
         end
 
-        (existing_item.qty % item_promotion.qty).times do
-          existing_item.sale_price += existing_item.price
+        (scanned_item.qty % item_promotion.qty).times do
+          scanned_item.sale_price += scanned_item.price
         end
       end
     end
 
-    basket_total = @basket.sum { |item| item.sale_price || item.total_price }
+    basket_total = @scanned_items.sum { |item| item.sale_price || item.total_price }
 
     # Basket promotions
     @rules.filter { |rule| rule.item.nil? }.each do |basket_promotion|
