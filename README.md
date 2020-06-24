@@ -10,12 +10,12 @@ interface:
 
 ## Items
 
-   Item | Price
-  ------|-------
-    A   | £30
-    B   | £20
-    C   | £50
-    D   | £15
+ Item | Price
+------|-------
+  A   | £30
+  B   | £20
+  C   | £50
+  D   | £15
 
 ## Promotions
 
@@ -26,12 +26,12 @@ interface:
 
 ## Example Test Data
 
-   Basket                 | Price
-  ------------------------|-------
-    A, B, C               | £100
-    B, A, B, A, A         | £110
-    C, B, A, A, D, A, B   | £155
-    C, A, D, A, A         | £140
+ Basket                 | Price
+------------------------|-------
+  A, B, C               | £100
+  B, A, B, A, A         | £110
+  C, B, A, A, D, A, B   | £155
+  C, A, D, A, A         | £140
 
 ## Basic Requirements
 
