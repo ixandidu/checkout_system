@@ -1,4 +1,4 @@
-require 'ostruct'
+require 'scanned_item'
 
 class Checkout
   def initialize(promotions)
@@ -15,10 +15,9 @@ class Checkout
 
   def scan(item)
     if (scanned_item = @scanned_items.find { |i| i.item == item })
-      scanned_item.qty += 1
-      scanned_item.total_price += item.price
+      scanned_item.increment!
     else
-      @scanned_items << OpenStruct.new(item: item, qty: 1, total_price: item.price)
+      @scanned_items << ScannedItem.new(item)
     end
   end
 
@@ -29,7 +28,7 @@ class Checkout
 
     @basket_promotions.sum do |basket_promotion|
       basket_promotion.apply(
-        @scanned_items.sum { |item| item.sale_price || item.total_price }
+        @scanned_items.sum { |item| item.sale_price || item.normal_price }
       )
     end
   end
