@@ -1,4 +1,5 @@
 require 'scanned_item'
+require 'promotion'
 
 class Checkout
   def initialize(promotions)
@@ -15,7 +16,7 @@ class Checkout
 
   def scan(item)
     if (scanned_item = @scanned_items.find { |i| i.item == item })
-      scanned_item.increment!
+      scanned_item.rescan
     else
       @scanned_items << ScannedItem.new(item)
     end
@@ -27,9 +28,7 @@ class Checkout
     end
 
     @basket_promotions.sum do |basket_promotion|
-      basket_promotion.apply(
-        @scanned_items.sum { |item| item.sale_price || item.normal_price }
-      )
+      basket_promotion.apply(@scanned_items.sum(&:billable_amount))
     end
   end
 end

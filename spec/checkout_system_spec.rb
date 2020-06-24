@@ -1,6 +1,4 @@
 require 'item'
-require 'promotion/item'
-require 'promotion/basket'
 require 'checkout'
 
 RSpec.describe 'Checkout System' do

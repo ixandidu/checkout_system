@@ -6,10 +6,15 @@ class ScannedItem
     @item = item
     @qty = 1
     @normal_price = item.price
+    @sale_price = 0
   end
 
-  def increment!
+  def rescan
     @qty += 1
     @normal_price += item.price
+  end
+
+  def billable_amount
+    sale_price.zero? ? normal_price : sale_price
   end
 end
