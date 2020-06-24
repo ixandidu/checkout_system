@@ -7,11 +7,34 @@ class Checkout
   end
 
   def scan(item)
-    @basket << item
+    if (existing_item = @basket.find { |i| i.item == item.item })
+      existing_item.qty += 1
+      existing_item.total_price += item.price
+    else
+      @basket << OpenStruct.new(**item.to_h, qty: 1, total_price: item.price)
+    end
   end
 
   def total
-    @basket.sum(&:price)
+    @rules.each do |item_promotion|
+      existing_item = @basket.find { |item| item.item == item_promotion.item }
+
+      next unless existing_item
+
+      if existing_item.qty >= item_promotion.qty
+        existing_item.sale_price = 0
+
+        (existing_item.qty / item_promotion.qty).times do
+          existing_item.sale_price += item_promotion.price
+        end
+
+        (existing_item.qty % item_promotion.qty).times do
+          existing_item.sale_price += existing_item.price
+        end
+      end
+    end
+
+    @basket.sum { |item| item.sale_price || item.total_price }
   end
 end
 
