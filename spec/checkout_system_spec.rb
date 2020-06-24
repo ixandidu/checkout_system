@@ -16,7 +16,8 @@ class Checkout
   end
 
   def total
-    @rules.each do |item_promotion|
+    # Item Promotions
+    @rules.filter { |rule| rule.total.nil? }.each do |item_promotion|
       existing_item = @basket.find { |item| item.item == item_promotion.item }
 
       next unless existing_item
@@ -34,7 +35,16 @@ class Checkout
       end
     end
 
-    @basket.sum { |item| item.sale_price || item.total_price }
+    basket_total = @basket.sum { |item| item.sale_price || item.total_price }
+
+    # Basket promotions
+    @rules.filter { |rule| rule.item.nil? }.each do |basket_promotion|
+      next if basket_total <= basket_promotion.total
+
+      basket_total -= basket_promotion.discount
+    end
+
+    basket_total
   end
 end
 
