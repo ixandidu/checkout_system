@@ -1,3 +1,5 @@
+require 'promotion'
+
 class PromotionCalculator
   def initialize(promotions)
     @promotions = promotions.group_by(&:class)

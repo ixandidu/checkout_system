@@ -1,5 +1,4 @@
 require 'scanned_item'
-require 'promotion'
 require 'promotion_calculator'
 
 class Checkout
