@@ -29,16 +29,4 @@ module Promotion
       scanned_item.item == item && scanned_item.qty >= qty
     end
   end
-
-  def self.apply(promotions, scanned_items)
-    promotions = promotions.group_by(&:class)
-
-    promotions[Item].each do |item_promotion|
-      item_promotion.apply(scanned_items)
-    end
-
-    promotions[Basket].sum do |basket_promotion|
-      basket_promotion.apply(scanned_items.sum(&:billable_amount))
-    end
-  end
 end

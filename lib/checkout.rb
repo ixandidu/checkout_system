@@ -1,10 +1,11 @@
 require 'scanned_item'
 require 'promotion'
+require 'promotion_calculator'
 
 class Checkout
   def initialize(promotions)
     @scanned_items = []
-    @promotions = promotions
+    @promotion_calculator = PromotionCalculator.new(promotions)
   end
 
   def scan(item)
@@ -15,6 +16,6 @@ class Checkout
   end
 
   def total
-    Promotion.apply(@promotions, @scanned_items)
+    @promotion_calculator.calculate_total(@scanned_items)
   end
 end
