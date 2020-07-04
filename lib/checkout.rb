@@ -16,10 +16,10 @@ class Checkout
   end
 
   def total
-    @promotions[Promotion::Basket].sum do |basket_promotion|
-      basket_promotion.apply(
-        @scanned_items.sum(&:subtotal)
-      )
+    @promotions[Promotion::Basket].inject(
+      @scanned_items.sum(&:subtotal)
+    ) do |subtotal, basket_promotion|
+      subtotal - basket_promotion.apply(subtotal)
     end
   end
 end
