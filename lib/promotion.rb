@@ -12,15 +12,11 @@ module Promotion
   end
 
   Item = Struct.new(:item, :quantity, :price, keyword_init: true) do
-    def apply(scanned_items)
-      scanned_items.each do |scanned_item|
-        next unless applicable?(scanned_item)
+    def apply(scanned_item)
+      return unless applicable?(scanned_item)
 
-        (scanned_item.quantity / quantity).times { scanned_item.sale_price += price }
-        (scanned_item.quantity % quantity).times do
-          scanned_item.sale_price += scanned_item.price
-        end
-      end
+      (scanned_item.quantity / quantity).times.sum { price } +
+        (scanned_item.quantity % quantity).times.sum { item.price }
     end
 
     private

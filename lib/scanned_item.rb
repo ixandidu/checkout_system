@@ -1,26 +1,16 @@
-require 'forwardable'
-
 class ScannedItem
-  extend Forwardable
+  attr_reader :item, :quantity, :subtotal
 
-  def_delegator :item, :price
-
-  attr_accessor :sale_price
-  attr_reader :item, :quantity, :normal_price
-
-  def initialize(item)
+  def initialize(item, promotion)
     @item = item
-    @quantity = 1
-    @normal_price = item.price
-    @sale_price = 0
+    @promotion = promotion
+    @quantity = 0
+
+    scan
   end
 
-  def rescan
+  def scan
     @quantity += 1
-    @normal_price += item.price
-  end
-
-  def billable_amount
-    sale_price.zero? ? normal_price : sale_price
+    @subtotal = @promotion&.apply(self) || item.price * @quantity
   end
 end

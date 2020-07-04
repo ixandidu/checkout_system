@@ -1,20 +1,25 @@
 require 'scanned_item'
-require 'promotion_calculator'
+require 'promotion'
 
 class Checkout
   def initialize(promotions)
     @scanned_items = []
-    @promotion_calculator = PromotionCalculator.new(promotions)
+    @promotions = promotions.group_by(&:class)
   end
 
   def scan(item)
-    scanned_item = @scanned_items.find { |i| i.item == item }
-    return scanned_item.rescan && @scanned_items if scanned_item
+    scanned_item = @scanned_items.find { |si| si.item == item }
+    return scanned_item.scan if scanned_item
 
-    @scanned_items << ScannedItem.new(item)
+    promotion = @promotions[Promotion::Item].find { |pi| pi.item == item }
+    @scanned_items << ScannedItem.new(item, promotion)
   end
 
   def total
-    @promotion_calculator.calculate_total(@scanned_items)
+    @promotions[Promotion::Basket].sum do |basket_promotion|
+      basket_promotion.apply(
+        @scanned_items.sum(&:subtotal)
+      )
+    end
   end
 end
