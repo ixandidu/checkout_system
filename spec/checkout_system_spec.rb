@@ -1,112 +1,53 @@
 require 'item'
 require 'checkout'
 
-RSpec.describe 'Checkout System' do
-  context 'given items A, B, C, and D exists' do
-    let(:item_a) { Item.new(name: 'A', price: 30) }
-    let(:item_b) { Item.new(name: 'B', price: 20) }
-    let(:item_c) { Item.new(name: 'C', price: 50) }
-    let(:item_d) { Item.new(name: 'D', price: 15) }
+RSpec.describe Checkout, '#total' do
+  let(:a) { Item.new(name: 'A', price: 30) }
+  let(:b) { Item.new(name: 'B', price: 20) }
+  let(:c) { Item.new(name: 'C', price: 50) }
+  let(:d) { Item.new(name: 'D', price: 15) }
+  let(:promotion_a) { Promotion::Item.new(item: a, quantity: 3, price: 75) }
+  let(:promotion_b) { Promotion::Item.new(item: b, quantity: 2, price: 35) }
+  let(:promotion_basket) { Promotion::Basket.new(total: 150, discount: 20) }
 
-    context 'and promotional rules for item A, item B, and basket discount exists' do
-      let(:item_a_promotion) do
-        Promotion::Item.new(item: item_a, quantity: 3, price: 75)
+  subject { checkout.total }
+
+  context 'with promotions' do
+    let(:checkout) { Checkout.new(promotions) }
+    let(:promotions) { [promotion_a, promotion_b, promotion_basket] }
+
+    context 'with items A, B, C in the basket' do
+      before { [a, b, c].each { |item| checkout.scan(item) } }
+      it     { is_expected.to eq(a.price + b.price + c.price) }
+    end
+
+    context 'with items B, A, B, A, A in the basket' do
+      before { [b, a, b, a, a].each { |item| checkout.scan(item) } }
+      it     { is_expected.to eq(promotion_a.price + promotion_b.price) }
+    end
+
+    context 'with items C, B, A, A, D, A, B in the basket' do
+      before { [c, b, a, a, d, a, b].each { |item| checkout.scan(item) } }
+      it 'is expected to eq 155' do
+        is_expected.to eq(
+          [c.price, promotion_a.price, promotion_b.price, d.price].sum -
+          promotion_basket.discount
+        )
       end
-      let(:item_b_promotion) do
-        Promotion::Item.new(item: item_b, quantity: 2, price: 35)
-      end
-      let(:basket_promotion) { Promotion::Basket.new(total: 150, discount: 20) }
+    end
 
-      describe Checkout, '#total' do
-        context 'with all promotional rules applied' do
-          let(:promotions) do
-            [item_a_promotion, item_b_promotion, basket_promotion]
-          end
+    context 'with items C, A, D, A, A the basket' do
+      before { [c, a, d, a, a].each { |item| checkout.scan(item) } }
+      it     { is_expected.to eq(c.price + promotion_a.price + d.price) }
+    end
 
-          context 'and items A, B, C in the basket' do
-            it 'is the sum of item price in the basket' do
-              checkout = Checkout.new(promotions)
-              checkout.scan(item_a)
-              checkout.scan(item_b)
-              checkout.scan(item_c)
-
-              expect(checkout.total).to eq(
-                item_a.price + item_b.price + item_c.price
-              )
-            end
-          end
-
-          context 'and items B, A, B, A, A in the basket' do
-            it 'is the sum of item A and item B promotion price' do
-              checkout = Checkout.new(promotions)
-              checkout.scan(item_b)
-              checkout.scan(item_a)
-              checkout.scan(item_b)
-              checkout.scan(item_a)
-              checkout.scan(item_a)
-
-              expect(checkout.total).to eq(
-                item_a_promotion.price + item_b_promotion.price
-              )
-            end
-          end
-
-          context 'and items C, B, A, A, D, A, B in the basket' do
-            it 'is the sum of item C price, item A and item B promotion price, and item D price, minus basket discount' do
-              checkout = Checkout.new(promotions)
-              checkout.scan(item_c)
-              checkout.scan(item_b)
-              checkout.scan(item_a)
-              checkout.scan(item_a)
-              checkout.scan(item_d)
-              checkout.scan(item_a)
-              checkout.scan(item_b)
-
-              expect(checkout.total).to eq(
-                item_c.price +
-                  item_a_promotion.price +
-                  item_b_promotion.price +
-                  item_d.price -
-                  basket_promotion.discount
-              )
-            end
-          end
-
-          context 'and items C, A, D, A, A the basket' do
-            it 'is the sum of item C price, item A promotion price, and item D price' do
-              checkout = Checkout.new(promotions)
-              checkout.scan(item_c)
-              checkout.scan(item_a)
-              checkout.scan(item_d)
-              checkout.scan(item_a)
-              checkout.scan(item_a)
-
-              expect(checkout.total).to eq(
-                item_c.price + item_a_promotion.price + item_d.price
-              )
-            end
-          end
-
-          context 'and items C, A, D, A, A, A the basket' do
-            it 'is the sum of item C price, item A promotion price, item D price, and item A price, minus basket discount' do
-              checkout = Checkout.new(promotions)
-              checkout.scan(item_c)
-              checkout.scan(item_a)
-              checkout.scan(item_d)
-              checkout.scan(item_a)
-              checkout.scan(item_a)
-              checkout.scan(item_a)
-
-              expect(checkout.total).to eq(
-                item_c.price +
-                  item_a_promotion.price +
-                  item_d.price +
-                  item_a.price -
-                  basket_promotion.discount
-              )
-            end
-          end
-        end
+    context 'with items C, A, D, A, A, A the basket' do
+      before { [c, a, d, a, a, a].each { |item| checkout.scan(item) } }
+      it 'is expected to eq 150' do
+        is_expected.to eq(
+          [c.price, promotion_a.price, d.price, a.price].sum -
+          promotion_basket.discount
+        )
       end
     end
   end
